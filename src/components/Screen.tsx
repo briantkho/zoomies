@@ -7,15 +7,14 @@ import {
   ScrollView,
   ScrollViewProps,
   StyleProp,
-  View,
   ViewStyle,
+  useColorScheme,
 } from "react-native"
 import { useScrollToTop } from "@react-navigation/native"
 import { SystemBars, SystemBarsProps, SystemBarStyle } from "react-native-edge-to-edge"
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller"
+import { View, useTheme } from "tamagui"
 
-import { useAppTheme } from "@/theme/context"
-import { $styles } from "@/theme/styles"
 import { ExtendedEdge, useSafeAreaInsetsStyle } from "@/utils/useSafeAreaInsetsStyle"
 
 export const DEFAULT_BOTTOM_OFFSET = 50
@@ -175,8 +174,12 @@ function useAutoPreset(props: AutoScreenProps): {
 function ScreenWithoutScrolling(props: ScreenProps) {
   const { style, contentContainerStyle, children, preset } = props
   return (
-    <View style={[$outerStyle, style]}>
-      <View style={[$innerStyle, preset === "fixed" && $justifyFlexEnd, contentContainerStyle]}>
+    <View flex={1} height="100%" width="100%" style={style}>
+      <View
+        justifyContent={preset === "fixed" ? "flex-end" : "flex-start"}
+        alignItems="stretch"
+        style={contentContainerStyle}
+      >
         {children}
       </View>
     </View>
@@ -234,15 +237,12 @@ function ScreenWithScrolling(props: ScreenProps) {
  * Represents a screen component that provides a consistent layout and behavior for different screen presets.
  * The `Screen` component can be used with different presets such as "fixed", "scroll", or "auto".
  * It handles safe area insets, status bar settings, keyboard avoiding behavior, and scrollability based on the preset.
- * @see [Documentation and Examples]{@link https://docs.infinite.red/ignite-cli/boilerplate/app/components/Screen/}
  * @param {ScreenProps} props - The props for the `Screen` component.
  * @returns {JSX.Element} The rendered `Screen` component.
  */
 export function Screen(props: ScreenProps) {
-  const {
-    theme: { colors },
-    themeContext,
-  } = useAppTheme()
+  const theme = useTheme()
+  const colorScheme = useColorScheme()
   const {
     backgroundColor,
     KeyboardAvoidingViewProps,
@@ -253,17 +253,18 @@ export function Screen(props: ScreenProps) {
   } = props
 
   const $containerInsets = useSafeAreaInsetsStyle(safeAreaEdges)
+  const $flexOne = { flex: 1 } as const
 
   return (
     <View
-      style={[
-        $containerStyle,
-        { backgroundColor: backgroundColor || colors.background },
-        $containerInsets,
-      ]}
+      flex={1}
+      height="100%"
+      width="100%"
+      backgroundColor={backgroundColor || theme.background.val}
+      style={$containerInsets}
     >
       <SystemBars
-        style={systemBarStyle || (themeContext === "dark" ? "light" : "dark")}
+        style={systemBarStyle || (colorScheme === "dark" ? "light" : "dark")}
         {...SystemBarsProps}
       />
 
@@ -271,7 +272,7 @@ export function Screen(props: ScreenProps) {
         behavior={isIos ? "padding" : "height"}
         keyboardVerticalOffset={keyboardOffset}
         {...KeyboardAvoidingViewProps}
-        style={[$styles.flex1, KeyboardAvoidingViewProps?.style]}
+        style={[$flexOne, KeyboardAvoidingViewProps?.style]}
       >
         {isNonScrolling(props.preset) ? (
           <ScreenWithoutScrolling {...props} />
@@ -283,20 +284,10 @@ export function Screen(props: ScreenProps) {
   )
 }
 
-const $containerStyle: ViewStyle = {
-  flex: 1,
-  height: "100%",
-  width: "100%",
-}
-
 const $outerStyle: ViewStyle = {
   flex: 1,
   height: "100%",
   width: "100%",
-}
-
-const $justifyFlexEnd: ViewStyle = {
-  justifyContent: "flex-end",
 }
 
 const $innerStyle: ViewStyle = {

@@ -47,11 +47,11 @@ export const colors = {
    */
   transparent: "rgba(0, 0, 0, 0)",
   /**
-   * The default text color in many components.
+   * Default text color
    */
   text: palette.neutral800,
   /**
-   * Secondary text information.
+   * Secondary text (information).
    */
   textDim: palette.neutral600,
   /**
